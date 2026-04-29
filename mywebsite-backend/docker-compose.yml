@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+
+  # ✅ PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine          # lightweight alpine version
+    container_name: authdb_postgres
+    restart: unless-stopped            # auto-restart if it crashes
+    environment:
+      POSTGRES_DB: authdb              # database name
+      POSTGRES_USER: postgres          # username
+      POSTGRES_PASSWORD: secret123     # password
+    ports:
+      - "5432:5432"                    # host:container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # ✅ data persists across restarts
+     # - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # ✅ runs on first start
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ✅ pgAdmin — visual DB browser (like a GUI for your DB)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: authdb_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'   # optional but useful for local
+    ports:
+      - "5050:80"
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json   # ✅ mount config
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+# ✅ Named volume — data survives container restarts/removal
+volumes:
+  postgres_data:
+
+# ✅ Internal network — containers talk to each other by name
+networks:
+  app-network:
+    driver: bridge
