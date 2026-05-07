@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://frontend-edhaya-anbalagan-dev.apps.rm1.0a51.p1.openshiftapps.com")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
