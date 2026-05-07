@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: postgres:15
+          image: registry.redhat.io/rhel8/postgresql-16
           ports:
             - containerPort: 5432
 
