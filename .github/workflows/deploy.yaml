@@ -1,0 +1,115 @@
+name: Deploy to OpenShift
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -------------------
+      # Backend Build
+      # -------------------
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build backend
+        working-directory: backend
+        run: mvn clean package -DskipTests
+
+      # -------------------
+      # Frontend Build
+      # -------------------
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build
+
+      # -------------------
+      # Login GHCR
+      # -------------------
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      # -------------------
+      # Build Backend Image
+      # -------------------
+
+      - name: Build backend image
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:latest ./backend
+
+      - name: Push backend image
+        run: |
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:latest
+
+      # -------------------
+      # Build Frontend Image
+      # -------------------
+
+      - name: Build frontend image
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:latest ./frontend
+
+      - name: Push frontend image
+        run: |
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:latest
+
+      # -------------------
+      # Install oc CLI
+      # -------------------
+
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+          tar -xvf oc.tar.gz
+          sudo mv oc /usr/local/bin
+
+      # -------------------
+      # Login OpenShift
+      # -------------------
+
+      - name: Login to OpenShift
+        run: |
+          oc login ${{ secrets.OPENSHIFT_SERVER }} \
+            --token=${{ secrets.OPENSHIFT_TOKEN }} \
+            --insecure-skip-tls-verify=true
+
+      - name: Select project
+        run: oc project ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      # -------------------
+      # Deploy K8s
+      # -------------------
+
+      - name: Apply Kubernetes manifests
+        run: oc apply -R -f k8s/
+
+      - name: Restart deployments
+        run: |
+          oc rollout restart deployment/backend
+          oc rollout restart deployment/frontend

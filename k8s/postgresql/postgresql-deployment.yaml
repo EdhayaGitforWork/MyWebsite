@@ -7,38 +7,33 @@ spec:
   selector:
     matchLabels:
       app: postgresql
+
   template:
     metadata:
       labels:
         app: postgresql
+
     spec:
       containers:
         - name: postgresql
-          image: registry.redhat.io/rhel8/postgresql-16
+
+          image: quay.io/sclorg/postgresql-15-c9s
+
           ports:
             - containerPort: 5432
 
           env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_USER
+            - name: POSTGRESQL_USER
+              value: postgres
 
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_PASSWORD
+            - name: POSTGRESQL_PASSWORD
+              value: secret123
 
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_DB
+            - name: POSTGRESQL_DATABASE
+              value: authdb
 
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
+            - mountPath: /var/lib/pgsql/data
               name: postgres-storage
 
       volumes:

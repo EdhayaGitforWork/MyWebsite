@@ -1,6 +1,5 @@
 package com.profile.mywebsite_backend.controller;
 
-
 import com.profile.mywebsite_backend.dto.request.LoginRequest;
 import com.profile.mywebsite_backend.dto.request.RegisterRequest;
 import com.profile.mywebsite_backend.dto.response.AuthResponse;
@@ -18,23 +17,13 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // POST /api/auth/register
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
-        System.out.println("Entering Register for email "+ request.getEmail());
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    // POST /api/auth/login
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @Valid @RequestBody LoginRequest request
-    ) {
-        System.out.println("Entering Register for email "+ request.getEmail());
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
-
-
 }
