@@ -35,16 +35,16 @@ const navStyle: React.CSSProperties = {
   justifyContent: "space-between",
   alignItems: "center",
   padding: "16px 32px",
-  backgroundColor: "#0070f3",
+  background: "linear-gradient(135deg, #a855f7, #ec4899)",
   color: "white",
   fontFamily: "'Inter', system-ui, sans-serif",
-  boxShadow: "0 2px 8px rgba(0,112,243,0.3)",
+  boxShadow: "0 4px 12px rgba(236, 72, 153, 0.3)",
 };
 
 const logoutButtonStyle: React.CSSProperties = {
   padding: "8px 18px",
   backgroundColor: "white",
-  color: "#0070f3",
+  color: "#a855f7",
   border: "none",
   borderRadius: "8px",
   cursor: "pointer",

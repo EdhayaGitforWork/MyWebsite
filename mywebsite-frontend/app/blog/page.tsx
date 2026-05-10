@@ -61,7 +61,7 @@ export default function BlogPage() {
   if (isLoading || !user) return null;
 
   return (
-    <div style={{ fontFamily: "sans-serif", minHeight: "100vh", backgroundColor: "#f9f9f9" }}>
+    <div style={{ fontFamily: "sans-serif", minHeight: "100vh", backgroundColor: "#fdf2f8" }}>
       <Navbar />
 
       <main style={{ maxWidth: "720px", margin: "0 auto", padding: "40px 20px" }}>
@@ -80,7 +80,7 @@ export default function BlogPage() {
               borderRadius: "12px",
               padding: "28px 32px",
               marginBottom: "20px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              boxShadow: "0 4px 14px rgba(168, 85, 247, 0.08)",
             }}
           >
             <h2 style={{ margin: "0 0 12px", fontSize: "22px" }}>

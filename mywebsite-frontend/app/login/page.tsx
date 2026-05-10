@@ -155,7 +155,7 @@ function LoginForm() {
 
         <p style={{ marginTop: "20px", fontSize: "14px", color: "#6b7280", textAlign: "center" }}>
           Don't have an account?{" "}
-          <Link href="/register" style={{ color: "#0070f3", fontWeight: 600, textDecoration: "none" }}>
+          <Link href="/register" style={{ color: "#ec4899", fontWeight: 600, textDecoration: "none" }}>
             Register
           </Link>
         </p>
@@ -178,7 +178,7 @@ const pageStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   minHeight: "100vh",
-  backgroundColor: "#f3f4f6",
+  background: "linear-gradient(135deg, #fdf2f8 0%, #ffffff 100%)",
   fontFamily: "'Inter', system-ui, sans-serif",
   padding: "20px",
 };
@@ -199,7 +199,7 @@ const submitButtonStyle: React.CSSProperties = {
   padding: "13px",
   fontSize: "15px",
   fontWeight: 600,
-  backgroundColor: "#0070f3",
+  background: "linear-gradient(135deg, #a855f7, #ec4899)",
   color: "white",
   border: "none",
   borderRadius: "8px",
