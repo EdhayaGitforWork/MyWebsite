@@ -19,7 +19,7 @@ spec:
       containers:
         - name: frontend
 
-          image: edhayaitc/frontend:v1
+          image: ghcr.io/IMAGE_OWNER/mywebsite-frontend:IMAGE_TAG
 
           ports:
             - containerPort: 3000

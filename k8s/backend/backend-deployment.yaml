@@ -18,7 +18,7 @@ spec:
       containers:
         - name: backend
 
-          image: edhayaitc/backend:v2
+          image: ghcr.io/IMAGE_OWNER/mywebsite-backend:IMAGE_TAG
 
           ports:
             - containerPort: 8080
@@ -27,20 +27,35 @@ spec:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgresql:5432/authdb
 
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_USER
 
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
 
             - name: JWT_SECRET
-              value: "YourSuperSecretKeyThatIsAtLeast256BitsLongForHS256Algorithm!"
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: JWT_SECRET
+
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: JWT_ACCESS_SECRET
+
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: JWT_REFRESH_SECRET
 
           readinessProbe:
             httpGet:

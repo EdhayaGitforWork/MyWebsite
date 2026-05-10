@@ -30,7 +30,7 @@ jobs:
           java-version: 21
 
       - name: Build backend
-        working-directory: backend
+        working-directory: mywebsite-backend
         run: mvn clean package -DskipTests
 
       # -------------------
@@ -43,7 +43,7 @@ jobs:
           node-version: 20
 
       - name: Build frontend
-        working-directory: frontend
+        working-directory: mywebsite-frontend
         run: |
           npm install
           npm run build
@@ -61,11 +61,11 @@ jobs:
 
       - name: Build backend image
         run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:latest ./backend
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }} ./mywebsite-backend
 
       - name: Push backend image
         run: |
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:latest
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }}
 
       # -------------------
       # Build Frontend Image
@@ -73,43 +73,32 @@ jobs:
 
       - name: Build frontend image
         run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:latest ./frontend
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }} ./mywebsite-frontend
 
       - name: Push frontend image
         run: |
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:latest
-
-      # -------------------
-      # Install oc CLI
-      # -------------------
-
-      - name: Install OpenShift CLI
-        run: |
-          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
-          tar -xvf oc.tar.gz
-          sudo mv oc /usr/local/bin
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }}
 
       # -------------------
       # Login OpenShift
       # -------------------
 
       - name: Login to OpenShift
-        run: |
-          oc login ${{ secrets.OPENSHIFT_SERVER }} \
-            --token=${{ secrets.OPENSHIFT_TOKEN }} \
-            --insecure-skip-tls-verify=true
-
-      - name: Select project
-        run: oc project ${{ secrets.OPENSHIFT_NAMESPACE }}
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
+          namespace: ${{ secrets.OPENSHIFT_NAMESPACE }}
 
       # -------------------
       # Deploy K8s
       # -------------------
 
+      - name: Update Kubernetes manifests
+        run: |
+          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-backend:IMAGE_TAG|ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }}|g" k8s/backend/backend-deployment.yaml
+          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-frontend:IMAGE_TAG|ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }}|g" k8s/frontend/frontend-deployment.yaml
+
       - name: Apply Kubernetes manifests
         run: oc apply -R -f k8s/
-
-      - name: Restart deployments
-        run: |
-          oc rollout restart deployment/backend
-          oc rollout restart deployment/frontend
