@@ -86,6 +86,12 @@ jobs:
       # Login OpenShift
       # -------------------
 
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+          tar -xvf oc.tar.gz
+          sudo mv oc /usr/local/bin
+
       - name: Login to OpenShift
         uses: redhat-actions/oc-login@v1
         with:
