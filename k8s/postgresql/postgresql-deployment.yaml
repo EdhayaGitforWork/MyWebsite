@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgresql
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: postgresql
@@ -14,6 +16,9 @@ spec:
         app: postgresql
 
     spec:
+      securityContext:
+        fsGroup: 26
+
       containers:
         - name: postgresql
 
@@ -23,19 +28,28 @@ spec:
             - containerPort: 5432
 
           env:
-            - name: POSTGRESQL_USER
-              value: postgres
-
-            - name: POSTGRESQL_PASSWORD
-              value: secret123
-
-            - name: POSTGRESQL_DATABASE
+            - name: POSTGRES_DB
               value: authdb
 
+            - name: POSTGRES_USER
+              value: postgres
+
+            - name: POSTGRES_PASSWORD
+              value: secret123
+
+            # IMPORTANT
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
           volumeMounts:
-            - mountPath: /var/lib/pgsql/data
-              name: postgres-storage
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
 
       volumes:
         - name: postgres-storage
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: postgres-pvc
