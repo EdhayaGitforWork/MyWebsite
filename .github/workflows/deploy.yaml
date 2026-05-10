@@ -52,8 +52,11 @@ jobs:
       # Login GHCR
       # -------------------
 
+      - name: Set repository owner to lowercase
+        run: echo "REPO_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Login to GHCR
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       # -------------------
       # Build Backend Image
@@ -61,11 +64,11 @@ jobs:
 
       - name: Build backend image
         run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }} ./mywebsite-backend
+          docker build -t ghcr.io/${{ env.REPO_OWNER }}/mywebsite-backend:${{ github.sha }} ./mywebsite-backend
 
       - name: Push backend image
         run: |
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }}
+          docker push ghcr.io/${{ env.REPO_OWNER }}/mywebsite-backend:${{ github.sha }}
 
       # -------------------
       # Build Frontend Image
@@ -73,11 +76,11 @@ jobs:
 
       - name: Build frontend image
         run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }} ./mywebsite-frontend
+          docker build -t ghcr.io/${{ env.REPO_OWNER }}/mywebsite-frontend:${{ github.sha }} ./mywebsite-frontend
 
       - name: Push frontend image
         run: |
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }}
+          docker push ghcr.io/${{ env.REPO_OWNER }}/mywebsite-frontend:${{ github.sha }}
 
       # -------------------
       # Login OpenShift
@@ -97,8 +100,8 @@ jobs:
 
       - name: Update Kubernetes manifests
         run: |
-          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-backend:IMAGE_TAG|ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-backend:${{ github.sha }}|g" k8s/backend/backend-deployment.yaml
-          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-frontend:IMAGE_TAG|ghcr.io/${{ secrets.GHCR_USERNAME }}/mywebsite-frontend:${{ github.sha }}|g" k8s/frontend/frontend-deployment.yaml
+          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-backend:IMAGE_TAG|ghcr.io/${{ env.REPO_OWNER }}/mywebsite-backend:${{ github.sha }}|g" k8s/backend/backend-deployment.yaml
+          sed -i "s|ghcr.io/IMAGE_OWNER/mywebsite-frontend:IMAGE_TAG|ghcr.io/${{ env.REPO_OWNER }}/mywebsite-frontend:${{ github.sha }}|g" k8s/frontend/frontend-deployment.yaml
 
       - name: Apply Kubernetes manifests
         run: oc apply -R -f k8s/
