@@ -76,7 +76,7 @@ jobs:
 
       - name: Build frontend image
         run: |
-          docker build --build-arg NEXT_PUBLIC_API_URL=http://backend-${{ secrets.OPENSHIFT_NAMESPACE }}.apps.rm1.0a51.p1.openshiftapps.com -t ghcr.io/${{ env.REPO_OWNER }}/mywebsite-frontend:${{ github.sha }} ./mywebsite-frontend
+          docker build --build-arg NEXT_PUBLIC_API_URL=https://backend-${{ secrets.OPENSHIFT_NAMESPACE }}.apps.rm1.0a51.p1.openshiftapps.com -t ghcr.io/${{ env.REPO_OWNER }}/mywebsite-frontend:${{ github.sha }} ./mywebsite-frontend
 
       - name: Push frontend image
         run: |

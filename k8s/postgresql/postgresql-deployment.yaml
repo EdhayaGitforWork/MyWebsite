@@ -16,9 +16,6 @@ spec:
         app: postgresql
 
     spec:
-      securityContext:
-        fsGroup: 26
-
       containers:
         - name: postgresql
 
