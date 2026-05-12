@@ -4,7 +4,7 @@ This document outlines all the deployment issues we encountered in the OpenShift
 
 ---
 
-## 1. GitHub Actions Authentication
+## 1. A GitHub Actions Authentication
 
 **Issue:** 
 I modified the OpenShift Service Account manifest (`k8s/github-sa.yaml`) to generate a new long-lived token for GitHub Actions but were unsure how to deploy it to re-authenticate your CI/CD pipeline.
@@ -18,6 +18,16 @@ oc get secret github-actions-token -o jsonpath="{.data.token}" | [System.Text.En
 *This token could then be safely added to the `OPENSHIFT_TOKEN` secret in GitHub.*
 
 ---
+## 1.B ImagePullBackOff 
+
+
+**Issue:** 
+The docker hub image for postgres could not be pulled by the open shift cluster. It was denied permission to pull from the docker hub
+
+**Resolution:**
+First I checked the logs of the postgres pod and found that it was not able to pull the image from the docker hub.
+Then I checked the logs of the registry pod and found that it was not able to pull the image from the docker hub.
+Finally, I found a way to pull the image from the quay.io registry.
 
 ## 2. Backend Pod CrashLoopBackOff
 
