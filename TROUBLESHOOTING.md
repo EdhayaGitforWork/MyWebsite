@@ -7,10 +7,10 @@ This document outlines all the deployment issues we encountered in the OpenShift
 ## 1. GitHub Actions Authentication
 
 **Issue:** 
-You modified the OpenShift Service Account manifest (`k8s/github-sa.yaml`) to generate a new long-lived token for GitHub Actions but were unsure how to deploy it to re-authenticate your CI/CD pipeline.
+I modified the OpenShift Service Account manifest (`k8s/github-sa.yaml`) to generate a new long-lived token for GitHub Actions but were unsure how to deploy it to re-authenticate your CI/CD pipeline.
 
 **Resolution:**
-I provided the exact workflow to deploy the new Service Account to the cluster and extract the generated token using the OpenShift CLI:
+I implemented the exact workflow to deploy the new Service Account to the cluster and extract the generated token using the OpenShift CLI:
 ```bash
 oc apply -f k8s/github-sa.yaml
 oc get secret github-actions-token -o jsonpath="{.data.token}" | [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))
