@@ -5,6 +5,12 @@ metadata:
 spec:
   replicas: 1
 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+
   selector:
     matchLabels:
       app: backend
@@ -22,10 +28,21 @@ spec:
 
           ports:
             - containerPort: 8080
+          
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
 
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgresql:5432/authdb
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: SPRING_DATASOURCE_URL
 
             - name: DB_USERNAME
               valueFrom:
