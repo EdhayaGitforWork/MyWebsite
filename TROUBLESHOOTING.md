@@ -7,9 +7,12 @@ This document outlines all the deployment issues we encountered in the OpenShift
 ## 1. A GitHub Actions Authentication
 
 **Issue:** 
-I modified the OpenShift Service Account manifest (`k8s/github-sa.yaml`) to generate a new long-lived token for GitHub Actions but were unsure how to deploy it to re-authenticate your CI/CD pipeline.
+When GitHub Actions tries to run oc login using a token, the OpenShift API server won't recognize the token and will throw a 401 Unauthorized error.
+Even if it managed to log in without RBAC permissions, the moment it tries to run oc apply -f k8s/, OpenShift will throw a 403 Forbidden error because the account doesn't have explicit permission to modify deployments.
 
 **Resolution:**
+I created a Service Account manifest (`k8s/github-sa.yaml`) to generate a new long-lived token for GitHub Actions 
+
 I implemented the exact workflow to deploy the new Service Account to the cluster and extract the generated token using the OpenShift CLI:
 ```bash
 oc apply -f k8s/github-sa.yaml
