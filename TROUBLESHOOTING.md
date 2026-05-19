@@ -124,9 +124,42 @@ I added Edge TLS termination to both routing manifests. This instructs the OpenS
 
 ---
 
+## 6. Missing Prometheus Metrics for OpenShift Monitoring
+
+**Issue:**
+Although an OpenShift `ServiceMonitor` was created to scrape metrics from the Spring Boot backend (`/actuator/prometheus`), no metrics were appearing in the OpenShift console.
+
+**Root Cause:**
+While Spring Boot Actuator was installed, it only exposed `/health` by default, and it lacked the ability to format metrics into the specific Prometheus format required by OpenShift.
+
+**Resolution:**
+I added the `micrometer-registry-prometheus` dependency to `pom.xml` and explicitly exposed the endpoint in `application.properties`:
+
+```properties
+management.endpoints.web.exposure.include=health,prometheus
+```
+
+---
+
+## 7. Missing Enterprise Security and Autoscaling Capabilities
+
+**Issue:**
+The initial deployments lacked resource boundaries, making them vulnerable to Node exhaustion (OOM kills) and preventing OpenShift from automatically scaling the application under load. Furthermore, the pods had no network isolation.
+
+**Resolution:**
+To elevate the cluster to an enterprise standard, I implemented the following:
+- **Resource Requests/Limits**: Defined exact CPU/Memory boundaries in all deployments (`frontend`, `backend`, `postgresql`).
+- **Horizontal Pod Autoscalers (HPA)**: Configured the frontend and backend to scale up to 5 replicas if CPU usage exceeds 70%.
+- **Pod Disruption Budgets (PDB)**: Guaranteed at least 1 pod remains running during cluster upgrades.
+- **Zero-Trust Network Policies**: Created a default-deny ingress policy, only allowing explicitly defined traffic flows (e.g., Frontend -> Backend -> Database).
+- **ConfigMaps**: Abstracted the database connection string out of the deployment YAML into a dedicated `backend-configmap.yaml`.
+
+---
+
 ### Final Status
-Following these changes, the end-to-end architecture is fully functional:
+Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
 - ✅ PostgreSQL storage allocated and securely running under restricted SCC.
 - ✅ Spring Boot backend connected to the database.
 - ✅ Next.js frontend securely exposed to the public internet via HTTPS Edge Termination.
+- ✅ Prometheus metrics fully integrated with OpenShift User Workload Monitoring.
