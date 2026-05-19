@@ -6,9 +6,12 @@ A full-stack application with a Next.js frontend, a Spring Boot backend, and a P
 The application is deployed on an **OpenShift** cluster using an industry-standard zero-trust architecture. 
 
 ### Kubernetes Manifests (`k8s/`)
-- **`backend/`**: Contains the Spring Boot deployment and maps environment variables for database credentials and JWT tokens directly from Kubernetes Secrets.
-- **`frontend/`**: Contains the Next.js deployment.
-- **`postgresql/`**: Contains the `postgresql-deployment.yaml` (using `postgres:16-alpine`) and its associated secrets and persistent volume claims.
+The deployment has been hardened with Enterprise OpenShift features:
+
+- **`frontend/`**: Contains the Next.js deployment with Liveness/Readiness probes. Includes a Horizontal Pod Autoscaler (HPA) to scale dynamically based on CPU, and a Pod Disruption Budget (PDB) to ensure high availability.
+- **`backend/`**: Contains the Spring Boot deployment. Database connection strings are abstracted via `ConfigMap`, while credentials and JWT tokens are injected securely from Secrets. Also includes an HPA, PDB, and a `ServiceMonitor` to integrate with OpenShift's built-in Prometheus for observability.
+- **`postgresql/`**: Contains the PostgreSQL database deployment using `postgres:16-alpine` securely mounted with Persistent Volume Claims (PVC) and running strictly under OpenShift's restricted Security Context Constraints.
+- **`network-policies.yaml`**: Implements a strict Zero-Trust model, denying all traffic by default and only allowing specific routing (e.g., Router -> Frontend, Frontend -> Backend, Backend -> DB).
 
 ### CI/CD Workflow (`.github/workflows/deploy.yaml`)
 We use GitHub Actions to automate the build and deployment process to OpenShift upon every push to the `main` branch.
