@@ -25,7 +25,7 @@ const services: Service[] = [
   },
   {
     id: "02",
-    title: "Back-End Development",
+    title: "Back-End Development..",
     description: "Building the server-side infrastructure, managing databases, and developing Application Programming Interfaces (APIs) to ensure data flows securely.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
