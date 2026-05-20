@@ -3,7 +3,7 @@
 A full-stack application with a Next.js frontend, a Spring Boot backend, and a PostgreSQL database.
 
 ## Architecture & Deployment
-The application is deployed on an **OpenShift** cluster using an industry-standard zero-trust architecture. 
+The application is deployed on an **OpenShift Cluster**  using an industry-standard zero-trust architecture. 
 
 ### Kubernetes Manifests (`k8s/`)
 The deployment has been hardened with Enterprise OpenShift features:
