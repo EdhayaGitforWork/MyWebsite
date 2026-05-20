@@ -5,92 +5,154 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 
-// ✅ Type for each biography section
-type BiographySection = {
+type Service = {
+  id: string;
   title: string;
-  content: string;
-  emoji: string;
+  description: string;
+  icon: React.ReactNode;
 };
 
-// ✅ Typed constant array — fill this with YOUR real story!
-const biographySections: BiographySection[] = [
+const services: Service[] = [
   {
-    emoji: "🌱",
-    title: "Early Life",
-    content:
-      "Born and raised in a small town, my curiosity for technology started at an early age when I got my first computer...",
+    id: "01",
+    title: "Front-End Development",
+    description: "Coding the visual elements users interact with (HTML, CSS, JavaScript) to ensure the site is responsive, fast, and accessible.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+    ),
   },
   {
-    emoji: "🎓",
-    title: "Education",
-    content:
-      "I pursued my passion through formal education, studying Computer Science and falling in love with building things that matter...",
+    id: "02",
+    title: "Back-End Development",
+    description: "Building the server-side infrastructure, managing databases, and developing Application Programming Interfaces (APIs) to ensure data flows securely.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+      </svg>
+    ),
   },
   {
-    emoji: "💼",
-    title: "Career",
-    content:
-      "My career has taken me through exciting challenges — from startups to established companies, always chasing meaningful work...",
+    id: "03",
+    title: "Full-Stack Development",
+    description: "Combining both front-end and back-end responsibilities to handle end-to-end project execution.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    ),
   },
   {
-    emoji: "❤️",
-    title: "Personal Life",
-    content:
-      "Outside of work, I love reading, traveling, and spending time with people who inspire me every day...",
+    id: "04",
+    title: "E-Commerce Development",
+    description: "Creating online stores, integrating shopping carts, and securing payment gateways (e.g., Stripe, PayPal).",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 100 4 2 2 0 000-4z" />
+      </svg>
+    ),
   },
   {
-    emoji: "🚀",
-    title: "What's Next",
-    content:
-      "I'm currently learning TypeScript with Next.js, building cool things, and looking forward to whatever comes next...",
+    id: "05",
+    title: "Content Management Systems (CMS)",
+    description: "Customizing, developing, or migrating platforms like WordPress, Shopify, or Webflow.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+    ),
   },
+  {
+    id: "06",
+    title: "Web Applications & SaaS",
+    description: "Building complex, browser-based tools that perform dynamic functions similar to desktop software.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+      </svg>
+    ),
+  },
+  {
+    id: "07",
+    title: "Maintenance & Support",
+    description: "Providing ongoing technical updates, security patches, performance monitoring, and bug fixes.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: "08",
+    title: "SEO & Analytics",
+    description: "Implementing technical optimizations to improve search engine rankings and setting up user tracking metrics.",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+      </svg>
+    ),
+  }
 ];
 
-export default function BlogPage() {
+export default function ServicesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  // ✅ useEffect to guard the page — redirect if not logged in
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
     }
   }, [user, isLoading, router]);
 
-  // ✅ Don't render anything while redirecting
   if (isLoading || !user) return null;
 
   return (
-    <div style={{ fontFamily: "sans-serif", minHeight: "100vh", backgroundColor: "#fdf2f8" }}>
+    <div className="min-h-screen bg-[#040B16] text-white font-sans selection:bg-teal-500/30">
       <Navbar />
 
-      <main style={{ maxWidth: "720px", margin: "0 auto", padding: "40px 20px" }}>
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <div style={{ fontSize: "72px" }}>🧑‍💻</div>
-          <h1 style={{ fontSize: "36px", margin: "16px 0 8px" }}>My Biography</h1>
-          <p style={{ color: "#888" }}>A story of curiosity, learning, and growth</p>
+      <main className="max-w-7xl mx-auto px-6 py-20">
+        <div className="mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
+            <span className="text-teal-400">⚡</span> My Services
+          </h1>
+          <p className="text-slate-400 text-lg max-w-2xl">
+            Providing end-to-end development, strategy, and maintenance to bring your ideas to life.
+          </p>
         </div>
 
-        {/* ✅ .map() over typed BiographySection[] */}
-        {biographySections.map((section: BiographySection, index: number) => (
-          <div
-            key={index}
-            style={{
-              backgroundColor: "white",
-              borderRadius: "12px",
-              padding: "28px 32px",
-              marginBottom: "20px",
-              boxShadow: "0 4px 14px rgba(168, 85, 247, 0.08)",
-            }}
-          >
-            <h2 style={{ margin: "0 0 12px", fontSize: "22px" }}>
-              {section.emoji} {section.title}
-            </h2>
-            <p style={{ color: "#555", lineHeight: "1.8", margin: 0 }}>
-              {section.content}
-            </p>
-          </div>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              className="group relative bg-[#0f172a]/60 backdrop-blur-sm border border-teal-900/30 rounded-xl p-6 transition-all duration-500 hover:-translate-y-1 hover:border-teal-400/80 hover:shadow-[0_0_40px_rgba(45,212,191,0.15)] hover:bg-[#0f172a]/90 overflow-hidden cursor-pointer"
+            >
+              {/* Highlight gradient at the top of the card that appears on hover */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+              {/* Top Row: Icon & ID */}
+              <div className="flex justify-between items-start mb-8">
+                <div className="w-14 h-14 rounded-xl border border-teal-800/50 flex items-center justify-center text-teal-500 bg-teal-950/20 group-hover:bg-teal-900/40 group-hover:border-teal-400/50 group-hover:text-teal-300 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(45,212,191,0.2)]">
+                  {service.icon}
+                </div>
+                <div className="text-5xl font-extrabold text-teal-900/20 group-hover:text-teal-700/30 transition-colors duration-500 select-none">
+                  {service.id}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-teal-50 transition-colors duration-300">
+                  {service.title}
+                </h3>
+                <p className="text-slate-400 text-sm leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
+                  {service.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );
