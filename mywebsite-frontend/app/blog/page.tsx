@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
@@ -100,6 +100,12 @@ export default function ServicesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
+  // State
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [projectDuration, setProjectDuration] = useState("");
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
@@ -108,8 +114,33 @@ export default function ServicesPage() {
 
   if (isLoading || !user) return null;
 
+  const toggleSelection = (id: string) => {
+    setSelectedCards((prev) => 
+      prev.includes(id) ? prev.filter(cardId => cardId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      userName: user?.email || "Unknown User", // Assuming name might not be set, using email as fallback
+      email: user?.email || "Unknown Email",
+      selectedServices: services.filter(s => selectedCards.includes(s.id)).map(s => s.title),
+      companyName,
+      projectDuration
+    };
+    
+    console.log("Sending to backend:", payload);
+    alert("Request sent successfully! Check console for payload.");
+    
+    setIsModalOpen(false);
+    setCompanyName("");
+    setProjectDuration("");
+    setSelectedCards([]);
+  };
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-pink-200">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-pink-200 relative">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-20">
@@ -123,37 +154,151 @@ export default function ServicesPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="group relative bg-pink-50/70 border border-pink-100 rounded-xl p-6 transition-all duration-500 hover:-translate-y-1 hover:border-purple-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.12)] hover:bg-white overflow-hidden cursor-pointer"
-            >
-              {/* Highlight gradient at the top of the card that appears on hover */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-400/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          {services.map((service) => {
+            const isSelected = selectedCards.includes(service.id);
+            
+            return (
+              <div
+                key={service.id}
+                onClick={() => toggleSelection(service.id)}
+                className={`group relative rounded-xl p-6 transition-all duration-500 hover:-translate-y-1 overflow-hidden cursor-pointer ${
+                  isSelected 
+                    ? "bg-black border-black shadow-[0_15px_40px_rgba(0,0,0,0.2)]" 
+                    : "bg-pink-50/70 border border-pink-100 hover:border-purple-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.12)] hover:bg-white"
+                }`}
+              >
+                {/* Highlight gradient at the top of the card that appears on hover */}
+                {!isSelected && (
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-400/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                )}
 
-              {/* Top Row: Icon & ID */}
-              <div className="flex justify-between items-start mb-8">
-                <div className="w-14 h-14 rounded-xl border border-pink-200 flex items-center justify-center text-pink-500 bg-white group-hover:bg-purple-50 group-hover:border-purple-300 group-hover:text-purple-600 transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-                  {service.icon}
+                {/* Top Row: Icon & ID */}
+                <div className="flex justify-between items-start mb-8">
+                  <div className={`w-14 h-14 rounded-xl border flex items-center justify-center transition-all duration-500 ${
+                    isSelected 
+                      ? "bg-slate-800 border-slate-700 text-white" 
+                      : "border-pink-200 text-pink-500 bg-white group-hover:bg-purple-50 group-hover:border-purple-300 group-hover:text-purple-600 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                  }`}>
+                    {service.icon}
+                  </div>
+                  <div className={`text-5xl font-extrabold transition-colors duration-500 select-none ${
+                    isSelected ? "text-slate-800" : "text-pink-200/60 group-hover:text-purple-200"
+                  }`}>
+                    {service.id}
+                  </div>
                 </div>
-                <div className="text-5xl font-extrabold text-pink-200/60 group-hover:text-purple-200 transition-colors duration-500 select-none">
-                  {service.id}
+
+                {/* Content */}
+                <div className="relative z-10">
+                  <h3 className={`text-xl font-bold mb-3 transition-colors duration-300 ${
+                    isSelected ? "text-white" : "text-slate-800 group-hover:text-purple-700"
+                  }`}>
+                    {service.title}
+                  </h3>
+                  <p className={`text-sm leading-relaxed transition-colors duration-300 ${
+                    isSelected ? "text-slate-300" : "text-slate-600 group-hover:text-slate-700"
+                  }`}>
+                    {service.description}
+                  </p>
                 </div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Content */}
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-purple-700 transition-colors duration-300">
-                  {service.title}
-                </h3>
-                <p className="text-slate-600 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
-                  {service.description}
-                </p>
-              </div>
-            </div>
-          ))}
+        {/* Contact Us Button */}
+        <div className="mt-16 flex justify-center">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              padding: "16px 48px",
+              fontSize: "18px",
+              fontWeight: 600,
+              background: "linear-gradient(135deg, #a855f7, #ec4899)",
+              color: "white",
+              border: "none",
+              borderRadius: "12px",
+              cursor: "pointer",
+              boxShadow: "0 10px 25px -5px rgba(236, 72, 153, 0.4)",
+            }}
+          >
+            Contact Us
+          </button>
         </div>
       </main>
+
+      {/* Modal Popup */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-xl font-bold text-slate-800">Project Details</h2>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Enter Company Name: (Optional)
+                </label>
+                <input 
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-slate-900"
+                  placeholder="e.g. Acme Corp"
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Project duration in months:
+                </label>
+                <input 
+                  type="number"
+                  min="1"
+                  required
+                  value={projectDuration}
+                  onChange={(e) => setProjectDuration(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-slate-900"
+                  placeholder="e.g. 6"
+                />
+              </div>
+
+              {selectedCards.length > 0 && (
+                <div className="mb-6 bg-purple-50 rounded-lg p-3 border border-purple-100">
+                  <p className="text-xs font-semibold text-purple-700 mb-1">Selected Services:</p>
+                  <p className="text-sm text-purple-600 font-medium">
+                    {selectedCards.length} service{selectedCards.length > 1 ? 's' : ''} selected
+                  </p>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                style={{
+                  padding: "13px",
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  background: "linear-gradient(135deg, #a855f7, #ec4899)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  width: "100%",
+                  cursor: "pointer",
+                }}
+              >
+                Submit Request
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
