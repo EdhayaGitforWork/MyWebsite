@@ -104,6 +104,7 @@ export default function ServicesPage() {
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyName, setCompanyName] = useState("");
+  const [mobileNo, setMobileNo] = useState("");
   const [projectDuration, setProjectDuration] = useState("");
 
   useEffect(() => {
@@ -122,21 +123,46 @@ export default function ServicesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if user submitted an enquiry today
+    const lastEnquiry = localStorage.getItem("lastEnquiryDate");
+    if (lastEnquiry) {
+      const lastEnquiryDate = new Date(lastEnquiry);
+      const today = new Date();
+      // Check if it's the same calendar day
+      if (
+        lastEnquiryDate.getFullYear() === today.getFullYear() &&
+        lastEnquiryDate.getMonth() === today.getMonth() &&
+        lastEnquiryDate.getDate() === today.getDate()
+      ) {
+        alert("You had just submitted an enquiry. You can do another one the next day.");
+        return;
+      }
+    }
+
     const payload = {
       userName: user?.email || "Unknown User", // Assuming name might not be set, using email as fallback
       email: user?.email || "Unknown Email",
+      mobileNo,
       selectedServices: services.filter(s => selectedCards.includes(s.id)).map(s => s.title),
       companyName,
       projectDuration
     };
     
     console.log("Sending to backend:", payload);
-    alert("Request sent successfully! Check console for payload.");
     
+    // Save to local storage to prevent multiple submissions
+    localStorage.setItem("lastEnquiryDate", new Date().toISOString());
+    
+    // Clear state so that if user clicks back button, it's reset
     setIsModalOpen(false);
     setCompanyName("");
+    setMobileNo("");
     setProjectDuration("");
     setSelectedCards([]);
+
+    // Redirect to Thank You page
+    router.push("/thank-you");
   };
 
   return (
@@ -255,6 +281,20 @@ export default function ServicesPage() {
                 />
               </div>
               
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Mobile number:
+                </label>
+                <input 
+                  type="tel"
+                  required
+                  value={mobileNo}
+                  onChange={(e) => setMobileNo(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-slate-900"
+                  placeholder="e.g. +1 234 567 8900"
+                />
+              </div>
+
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Project duration in months:
