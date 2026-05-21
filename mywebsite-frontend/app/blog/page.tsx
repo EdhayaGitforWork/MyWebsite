@@ -109,15 +109,15 @@ export default function ServicesPage() {
   if (isLoading || !user) return null;
 
   return (
-    <div className="min-h-screen bg-[#040B16] text-white font-sans selection:bg-teal-500/30">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-pink-200">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-20">
         <div className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
-            <span className="text-teal-400">⚡</span> My Services
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3 text-slate-900">
+            <span className="text-pink-500">⚡</span> My Services
           </h1>
-          <p className="text-slate-400 text-lg max-w-2xl">
+          <p className="text-slate-600 text-lg max-w-2xl">
             Providing end-to-end development, strategy, and maintenance to bring your ideas to life.
           </p>
         </div>
@@ -126,27 +126,27 @@ export default function ServicesPage() {
           {services.map((service) => (
             <div
               key={service.id}
-              className="group relative bg-[#0f172a]/60 backdrop-blur-sm border border-teal-900/30 rounded-xl p-6 transition-all duration-500 hover:-translate-y-1 hover:border-teal-400/80 hover:shadow-[0_0_40px_rgba(45,212,191,0.15)] hover:bg-[#0f172a]/90 overflow-hidden cursor-pointer"
+              className="group relative bg-pink-50/70 border border-pink-100 rounded-xl p-6 transition-all duration-500 hover:-translate-y-1 hover:border-purple-300 hover:shadow-[0_15px_40px_rgba(168,85,247,0.12)] hover:bg-white overflow-hidden cursor-pointer"
             >
               {/* Highlight gradient at the top of the card that appears on hover */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-400/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               {/* Top Row: Icon & ID */}
               <div className="flex justify-between items-start mb-8">
-                <div className="w-14 h-14 rounded-xl border border-teal-800/50 flex items-center justify-center text-teal-500 bg-teal-950/20 group-hover:bg-teal-900/40 group-hover:border-teal-400/50 group-hover:text-teal-300 transition-all duration-500 group-hover:shadow-[0_0_15px_rgba(45,212,191,0.2)]">
+                <div className="w-14 h-14 rounded-xl border border-pink-200 flex items-center justify-center text-pink-500 bg-white group-hover:bg-purple-50 group-hover:border-purple-300 group-hover:text-purple-600 transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]">
                   {service.icon}
                 </div>
-                <div className="text-5xl font-extrabold text-teal-900/20 group-hover:text-teal-700/30 transition-colors duration-500 select-none">
+                <div className="text-5xl font-extrabold text-pink-200/60 group-hover:text-purple-200 transition-colors duration-500 select-none">
                   {service.id}
                 </div>
               </div>
 
               {/* Content */}
               <div className="relative z-10">
-                <h3 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-teal-50 transition-colors duration-300">
+                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-purple-700 transition-colors duration-300">
                   {service.title}
                 </h3>
-                <p className="text-slate-400 text-sm leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
+                <p className="text-slate-600 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
                   {service.description}
                 </p>
               </div>
