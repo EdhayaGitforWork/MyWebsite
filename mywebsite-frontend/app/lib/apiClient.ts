@@ -73,3 +73,13 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 };
+
+// ── Enquiries API calls ───────────────────────────────────────────────
+
+export const enquiriesApi = {
+  submit: (data: any): Promise<any> =>
+    request<any>("/api/enquiries", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};

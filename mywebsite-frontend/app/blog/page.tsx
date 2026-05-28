@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import { enquiriesApi } from "../lib/apiClient";
 
 type Service = {
   id: string;
@@ -106,6 +107,7 @@ export default function ServicesPage() {
   const [companyName, setCompanyName] = useState("");
   const [mobileNo, setMobileNo] = useState("");
   const [projectDuration, setProjectDuration] = useState("");
+  const [domain, setDomain] = useState("Banking");
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -121,7 +123,7 @@ export default function ServicesPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Check if user submitted an enquiry today
@@ -146,10 +148,19 @@ export default function ServicesPage() {
       mobileNo,
       selectedServices: services.filter(s => selectedCards.includes(s.id)).map(s => s.title),
       companyName,
-      projectDuration
+      projectDuration,
+      domain
     };
     
     console.log("Sending to backend:", payload);
+    
+    try {
+      await enquiriesApi.submit(payload);
+    } catch (error) {
+      console.error("Failed to submit enquiry:", error);
+      alert("There was an error submitting your request. Please try again.");
+      return;
+    }
     
     // Save to local storage to prevent multiple submissions
     localStorage.setItem("lastEnquiryDate", new Date().toISOString());
@@ -159,6 +170,7 @@ export default function ServicesPage() {
     setCompanyName("");
     setMobileNo("");
     setProjectDuration("");
+    setDomain("Banking");
     setSelectedCards([]);
 
     // Redirect to Thank You page
@@ -279,6 +291,20 @@ export default function ServicesPage() {
                   className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-slate-900"
                   placeholder="e.g. Acme Corp"
                 />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Select Domain:
+                </label>
+                <select 
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all text-slate-900 bg-white"
+                >
+                  <option value="Banking">Banking</option>
+                  <option value="Fintech">Fintech</option>
+                </select>
               </div>
               
               <div className="mb-4">
