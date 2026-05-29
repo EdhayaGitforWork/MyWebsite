@@ -39,7 +39,7 @@ spec:
     spec:
       containers:
         - name: kafka
-          image: bitnami/kafka:3.6.0
+          image: public.ecr.aws/bitnami/kafka:3.6.0
           ports:
             - containerPort: 9092
           env:

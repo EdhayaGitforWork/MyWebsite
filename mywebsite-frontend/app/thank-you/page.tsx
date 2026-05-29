@@ -15,7 +15,7 @@ export default function ThankYouPage() {
             🎉
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-4">
-            Thanks for contacting us!
+            Thanks for contacting us!!
           </h1>
           <p className="text-slate-600 text-lg mb-8 leading-relaxed">
             We have received your enquiry and will contact you soon.
