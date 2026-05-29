@@ -156,6 +156,57 @@ To elevate the cluster to an enterprise standard, I implemented the following:
 
 ---
 
+---
+
+## 8. Missing Strimzi Operator (no matches for kind "Kafka")
+
+**Issue:**
+When running `oc apply -R -f k8s/`, the command failed with the following errors:
+`unable to recognize "k8s/kafka/kafka-cluster.yaml": no matches for kind "Kafka" in version "kafka.strimzi.io/v1beta2"`
+`unable to recognize "k8s/kafka/kafka-topic.yaml": no matches for kind "KafkaTopic" in version "kafka.strimzi.io/v1beta2"`
+
+**Root Cause:**
+Deploying Custom Resources of kind `Kafka` and `KafkaTopic` requires the Strimzi Operator (or Red Hat AMQ Streams) to be installed in the cluster/namespace to register these Custom Resource Definitions (CRDs). Since we did not have cluster-wide OperatorHub admin privileges to install the operator, the Kubernetes API server rejected these custom resources.
+
+**Resolution:**
+Instead of using Strimzi Custom Resources, we shifted to a standalone, operator-free single-pod Kafka architecture.
+1. Deleted the Strimzi operator YAML files: `k8s/kafka/kafka-cluster.yaml` and `k8s/kafka/kafka-topic.yaml`.
+2. Created a standard Kubernetes deployment manifest `k8s/kafka/kafka-single-pod.yaml` which defines a standard `Deployment`, `Service`, and `PersistentVolumeClaim`. This does not require any operators or special admin privileges.
+
+---
+
+## 9. Kafka ImagePullBackOff (Docker Hub Access Blocked)
+
+**Issue:**
+The newly deployed Kafka pod was stuck in `ImagePullBackOff` or `ErrImagePull`, showing:
+`trying and failing to pull image "bitnami/kafka:3.6.0"`
+
+**Root Cause:**
+Many enterprise OpenShift environments block or heavily rate-limit anonymous pulls from Docker Hub (`docker.io`), causing image downloads for `bitnami/kafka:3.6.0` to fail.
+
+**Resolution:**
+Updated the image source in `k8s/kafka/kafka-single-pod.yaml` to pull from the AWS ECR Public Gallery, which bypasses Docker Hub rate limits and is widely whitelisted in OpenShift:
+- Changed `image: bitnami/kafka:3.6.0` to `image: public.ecr.aws/bitnami/kafka:3.6.0`.
+
+---
+
+## 10. Backend CrashLoopBackOff (Missing Kafka Bootstrap Servers Env Var)
+
+**Issue:**
+The `backend` pod was repeatedly failing and entering a `CrashLoopBackOff` state.
+
+**Root Cause:**
+In `application.properties`, the Kafka bootstrap server defaults to `localhost:9092` if the `KAFKA_BOOTSTRAP_SERVERS` environment variable is not defined. Inside the OpenShift cluster, `localhost` points to the backend container itself (where no Kafka broker is running), rather than our standalone Kafka pod. This caused the Spring Boot application's Kafka client to fail to connect, causing startup failure.
+
+**Resolution:**
+I added the `KAFKA_BOOTSTRAP_SERVERS` environment variable to `k8s/backend/backend-deployment.yaml` and set it to the cluster-internal DNS address of our Kafka bootstrap service:
+```yaml
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "my-cluster-kafka-bootstrap:9092"
+```
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
@@ -163,3 +214,6 @@ Following these changes, the end-to-end architecture is fully functional and ent
 - ✅ Spring Boot backend connected to the database.
 - ✅ Next.js frontend securely exposed to the public internet via HTTPS Edge Termination.
 - ✅ Prometheus metrics fully integrated with OpenShift User Workload Monitoring.
+- ✅ Standalone single-pod Kafka deployed inside developer namespace without operator requirements.
+- ✅ AWS DynamoDB integration and credentials configured using DefaultCredentialsProvider.
+

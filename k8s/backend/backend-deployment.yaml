@@ -38,6 +38,9 @@ spec:
               memory: 1Gi
 
           env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "my-cluster-kafka-bootstrap:9092"
+
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:
