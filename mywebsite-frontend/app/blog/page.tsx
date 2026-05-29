@@ -126,22 +126,6 @@ export default function ServicesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if user submitted an enquiry today
-    const lastEnquiry = localStorage.getItem("lastEnquiryDate");
-    if (lastEnquiry) {
-      const lastEnquiryDate = new Date(lastEnquiry);
-      const today = new Date();
-      // Check if it's the same calendar day
-      if (
-        lastEnquiryDate.getFullYear() === today.getFullYear() &&
-        lastEnquiryDate.getMonth() === today.getMonth() &&
-        lastEnquiryDate.getDate() === today.getDate()
-      ) {
-        alert("You had just submitted an enquiry. You can do another one the next day.");
-        return;
-      }
-    }
-
     const payload = {
       userName: user?.email || "Unknown User", // Assuming name might not be set, using email as fallback
       email: user?.email || "Unknown Email",
@@ -161,9 +145,6 @@ export default function ServicesPage() {
       alert("There was an error submitting your request. Please try again.");
       return;
     }
-    
-    // Save to local storage to prevent multiple submissions
-    localStorage.setItem("lastEnquiryDate", new Date().toISOString());
     
     // Clear state so that if user clicks back button, it's reset
     setIsModalOpen(false);
