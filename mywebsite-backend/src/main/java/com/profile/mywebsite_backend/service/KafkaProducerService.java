@@ -13,7 +13,7 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     
-    private static final String TOPIC = "enquiries-topic";
+    private static final String TOPIC = "enquiry-events";
 
     public void sendEnquiry(EnquiryRequest request) {
         log.info("Sending enquiry to Kafka topic '{}': {}", TOPIC, request.getEmail());

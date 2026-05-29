@@ -237,6 +237,23 @@ Attempting to submit the enquiry form on the frontend failed, triggering an aler
 
 ---
 
+## 13. Kafka Topic Name Mismatch between Producer and Consumer
+
+**Issue:**
+Although the frontend successfully submitted the enquiry (returning HTTP 200), the backend consumer never picked up or processed the event.
+
+**Root Cause:**
+There was a mismatch in the Kafka topic names:
+- The `KafkaProducerService.java` had the destination topic hardcoded as `enquiries-topic`.
+- The `KafkaConsumerService.java` had its `@KafkaListener` subscribed to `enquiry-events`.
+Because of this, the producer was publishing to a separate topic, and the consumer was listening to an empty topic.
+
+**Resolution:**
+Updated `KafkaProducerService.java` to use the correct topic name matching the consumer:
+- Changed `private static final String TOPIC = "enquiries-topic"` to `private static final String TOPIC = "enquiry-events"`.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
