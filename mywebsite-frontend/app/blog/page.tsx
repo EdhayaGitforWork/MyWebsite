@@ -155,7 +155,7 @@ export default function ServicesPage() {
     console.log("Sending to backend:", payload);
     
     try {
-      await enquiriesApi.submit(payload);
+      await enquiriesApi.submit(payload, user.token);
     } catch (error) {
       console.error("Failed to submit enquiry:", error);
       alert("There was an error submitting your request. Please try again.");

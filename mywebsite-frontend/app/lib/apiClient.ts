@@ -77,8 +77,8 @@ export const authApi = {
 // ── Enquiries API calls ───────────────────────────────────────────────
 
 export const enquiriesApi = {
-  submit: (data: any): Promise<any> =>
-    request<any>("/api/enquiries", {
+  submit: (data: any, token: string): Promise<any> =>
+    authRequest<any>("/api/enquiries", token, {
       method: "POST",
       body: JSON.stringify(data),
     }),

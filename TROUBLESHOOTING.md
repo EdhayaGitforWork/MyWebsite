@@ -221,6 +221,22 @@ Replaced the `spring-kafka` dependency with `spring-boot-starter-kafka` in `pom.
 
 ---
 
+## 12. Frontend Enquiry Submission Fails with 403 Forbidden
+
+**Issue:**
+Attempting to submit the enquiry form on the frontend failed, triggering an alert dialog and returning a `403 Forbidden` status on the `POST /api/enquiries` API call.
+
+**Root Cause:**
+1. **Security Config missing JWT Filter:** In the backend `SecurityConfig.java`, we did not add the custom `JwtAuthFilter` to the security filter chain. Because of this, Spring Security had no way of parsing and validating the Authorization header for protected endpoints, defaulting all calls to `/api/enquiries` (which falls under `.anyRequest().authenticated()`) as unauthenticated and rejecting them with a `403 Forbidden` error.
+2. **Frontend missing Token:** The frontend `apiClient.ts` was using the unauthenticated `request` wrapper instead of `authRequest`, meaning it didn't attach the logged-in user's JWT token to the request headers.
+
+**Resolution:**
+1. **Updated Backend `SecurityConfig.java`**: Injected the custom `JwtAuthFilter` and added it to the filter chain using `.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)`.
+2. **Updated Frontend `apiClient.ts`**: Modified `enquiriesApi.submit` to accept the logged-in user's token and call `authRequest` to automatically attach the `Bearer <token>` Authorization header.
+3. **Updated Frontend `app/blog/page.tsx`**: Updated the submit handler to retrieve `user.token` from the auth context and pass it to the submit method.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
