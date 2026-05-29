@@ -207,6 +207,20 @@ I added the `KAFKA_BOOTSTRAP_SERVERS` environment variable to `k8s/backend/backe
 
 ---
 
+## 11. Missing `KafkaTemplate` Bean (Unsatisfied Dependency in KafkaProducerService)
+
+**Issue:**
+The backend application failed to start, throwing `UnsatisfiedDependencyException`:
+`No qualifying bean of type 'org.springframework.kafka.core.KafkaTemplate<java.lang.String, java.lang.Object>' available: expected at least 1 bean which qualifies as autowire candidate.`
+
+**Root Cause:**
+In `pom.xml`, the core library `org.springframework.kafka:spring-kafka` was declared directly instead of the Spring Boot starter `org.springframework.boot:spring-boot-starter-kafka`. While `spring-kafka` provides the class definitions, it does not trigger Spring Boot's auto-configuration. Consequently, Spring Boot did not register the default `KafkaTemplate` and `KafkaListenerContainerFactory` beans.
+
+**Resolution:**
+Replaced the `spring-kafka` dependency with `spring-boot-starter-kafka` in `pom.xml`. This enables Spring Boot's auto-configuration mechanisms to dynamically set up and register the Kafka template and listener factory beans based on properties defined in `application.properties`.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
