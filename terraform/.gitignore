@@ -1,0 +1,15 @@
+# Local .terraform directories
+.terraform/
+
+# Consumed plan files
+*tfplan*
+
+# State files
+*.tfstate
+*.tfstate.backup
+
+# Configuration overrides
+override.tf
+override.tf.json
+*override.tf
+*override.tf.json
