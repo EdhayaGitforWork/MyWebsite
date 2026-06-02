@@ -1,31 +1,84 @@
-# MyWebsite
+# MyWebsite (Full-Stack Portfolio)
 
-A full-stack application with a Next.js frontend, a Spring Boot backend, and a PostgreSQL database.
+A full-stack, event-driven portfolio website featuring a Next.js frontend, a Spring Boot backend, a PostgreSQL database, a Kafka event broker, and AWS DynamoDB persistence.
 
-## Architecture & Deployment
-The application is deployed on an **OpenShift Cluster**  using an industry-standard zero-trust architecture. 
+---
 
-### Kubernetes Manifests (`k8s/`)
-The deployment has been hardened with Enterprise OpenShift features:
+## System Architecture & Data Flow
 
-- **`frontend/`**: Contains the Next.js deployment with Liveness/Readiness probes. Includes a Horizontal Pod Autoscaler (HPA) to scale dynamically based on CPU, and a Pod Disruption Budget (PDB) to ensure high availability.
-- **`backend/`**: Contains the Spring Boot deployment. Database connection strings are abstracted via `ConfigMap`, while credentials and JWT tokens are injected securely from Secrets. Also includes an HPA, PDB, and a `ServiceMonitor` to integrate with OpenShift's built-in Prometheus for observability.
-- **`postgresql/`**: Contains the PostgreSQL database deployment using `postgres:16-alpine` securely mounted with Persistent Volume Claims (PVC) and running strictly under OpenShift's restricted Security Context Constraints.
-- **`network-policies.yaml`**: Implements a strict Zero-Trust model, denying all traffic by default and only allowing specific routing (e.g., Router -> Frontend, Frontend -> Backend, Backend -> DB).
+The project is structured with an **Event-Driven Enquiry Flow** to handle user inquiries asynchronously:
 
-### CI/CD Workflow (`.github/workflows/deploy.yaml`)
-We use GitHub Actions to automate the build and deployment process to OpenShift upon every push to the `main` branch.
+```text
+[ Next.js Frontend ] 
+       │ (REST POST /api/enquiries with JWT)
+       ▼
+[ Spring Boot Backend (Producer) ]
+       │ (Publishes JSON payload)
+       ▼
+[ Standalone Kafka Broker ] (Topic: enquiry-events)
+       │ (Subscribed `@KafkaListener`)
+       ▼
+[ Spring Boot Backend (Consumer) ]
+       │ (Filters for 'Banking' or 'Fintech' domains)
+       ▼
+[ AWS DynamoDB ] (Table: Enquiries-dev)
+```
 
-**Workflow Steps:**
-1. **Code Checkout**: Grabs the latest code.
-2. **Java & Node Setup**: Prepares the environment.
-3. **App Build**: Runs `mvn clean package` and `npm run build` to ensure the code compiles without errors.
-4. **GHCR Login**: Authenticates seamlessly with the GitHub Container Registry using the built-in `${{ secrets.GITHUB_TOKEN }}`.
-5. **Docker Build & Push**: 
-   - Builds Docker images for both the frontend and backend.
-   - Images are tagged with the exact Git Commit SHA (`${{ github.sha }}`) to ensure perfect traceability.
-   - The frontend Docker build is injected with the OpenShift backend URL via the `--build-arg NEXT_PUBLIC_API_URL` to ensure it connects correctly in production.
-6. **OpenShift CLI Install**: Downloads the `oc` binary into the GitHub runner.
-7. **OpenShift Login**: Uses `redhat-actions/oc-login@v1` to authenticate with the OpenShift cluster using repository secrets.
-8. **Dynamic Manifest Injection**: Uses `sed` to find the placeholder `IMAGE_TAG` in the Kubernetes YAML files and replaces it with the newly built `${{ github.sha }}`.
-9. **Deployment**: Runs `oc apply -R -f k8s/`. OpenShift detects the new image SHA and performs a zero-downtime rolling update.
+1. **Submission:** A logged-in user selects services and submits a project enquiry on the frontend.
+2. **API Endpoint:** The request is sent to the backend `/api/enquiries` endpoint, secured with JWT authentication (`JwtAuthFilter`).
+3. **Kafka Producer:** The backend receives the request and immediately pushes the payload to the `enquiry-events` Kafka topic.
+4. **Kafka Consumer:** A background listener consumes the message, checks the client's industry domain, and validates if it matches **Banking** or **Fintech**.
+5. **Database Storage:** If validated, the consumer writes the enquiry details into the AWS DynamoDB table (`Enquiries-dev`).
+
+---
+
+## Directory Structure & Resource Layout
+
+### 1. Kubernetes/OpenShift Manifests (`k8s/`)
+The deployment is designed for **Red Hat OpenShift** with security and observability configurations:
+- **`frontend/`**: Contains the Next.js deployment. Exposes the routing externally via an HTTPS Route with Edge TLS termination.
+- **`backend/`**: Contains the Spring Boot deployment. Injects DB credentials, JWT secrets, and the internal Kafka service URL (`KAFKA_BOOTSTRAP_SERVERS`). Includes HPAs, PDBs, and a Prometheus `ServiceMonitor`.
+- **`postgresql/`**: PostgreSQL database deployment securely mounted with a Persistent Volume Claim (PVC) and running under OpenShift's default restricted SCC.
+- **`kafka/`**: A lightweight standalone Kafka deployment running in **KRaft** mode mounted with `kafka-pvc` (storage persistence). Exposes `my-cluster-kafka-bootstrap:9092` internally.
+- **`network-policies.yaml`**: Implements a zero-trust network boundary, locking down internal ingress between pods.
+
+### 2. AWS Cloud Infrastructure (`terraform/`)
+We use Terraform to manage the AWS resources programmatically:
+- **`main.tf`**: Provisions the DynamoDB table, defines a write-only IAM policy restricted to that table, creates a service IAM user (`enquiry-backend-user-dev`), and generates programmatic API access keys.
+- **`variables.tf`**: Sets default region configuration (`eu-west-2` London) and environment names.
+- **`outputs.tf`**: Exposes the generated AWS Access and Secret Keys.
+
+### 3. CI/CD Workflow (`.github/workflows/deploy.yaml`)
+Automates the build and deployment on git push to the `main` branch.
+- Compiles Maven code (`-DskipTests`) and builds Next.js assets.
+- Tags container images with the Git Commit SHA (`${{ github.sha }}`) and pushes them to the GitHub Container Registry (GHCR).
+- Authenticates with the OpenShift cluster using a long-lived Service Account token (`github-actions-token`).
+- Injects the active Git SHA into the deployment manifests and triggers a rolling update (`oc apply -R -f k8s/`).
+
+---
+
+## Provisioning & Run Commands
+
+### 1. Set up AWS Infrastructure
+Navigate to the Terraform folder and run:
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+After creation, capture the AWS Access and Secret keys using `terraform output` to inject them into your OpenShift secrets.
+
+### 2. Deploy Applications to OpenShift
+Apply all manifests recursively:
+```bash
+oc apply -R -f k8s/
+```
+
+### 3. Verify Kafka Events
+To monitor messages passing through your Kafka topic in real time:
+```bash
+oc exec -it deployment/kafka -- /opt/bitnami/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic enquiry-events \
+  --from-beginning
+```

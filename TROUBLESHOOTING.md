@@ -254,6 +254,23 @@ Updated `KafkaProducerService.java` to use the correct topic name matching the c
 
 ---
 
+## 14. Failed Git Push due to Large Terraform Provider Binary and State Files
+
+**Issue:**
+Attempting to run `git push origin main` failed with a pre-receive hook error:
+`remote: error: GH001: Large files detected. You may want to try Git Large File Storage...`
+The push was rejected because the `terraform-provider-aws` binary (685.52 MB) exceeded GitHub's 100 MB file limit.
+
+**Root Cause:**
+Running `terraform init` locally downloaded the provider binaries inside the `terraform/.terraform/` subdirectory. Since there was no `.gitignore` file, the entire directory (including state files (`terraform.tfstate` and `terraform.tfstate.backup`) containing sensitive AWS IAM credentials) was accidentally committed to the Git repository.
+
+**Resolution:**
+1. **Added `terraform/.gitignore`**: Configured exclusions for the `.terraform/` binary directory, plans, state files (`*.tfstate`), and configuration overrides.
+2. **Untracked Binary & State Files**: Ran `git rm -r --cached terraform/.terraform` and `git rm --cached terraform/terraform.tfstate terraform/terraform.tfstate.backup` to remove them from the staging area.
+3. **Amended Git History**: Ran `git commit --amend --no-edit` to recreate the latest local commit, entirely removing the large binaries and secrets from the repository history before they could be pushed.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
@@ -263,4 +280,6 @@ Following these changes, the end-to-end architecture is fully functional and ent
 - ✅ Prometheus metrics fully integrated with OpenShift User Workload Monitoring.
 - ✅ Standalone single-pod Kafka deployed inside developer namespace without operator requirements.
 - ✅ AWS DynamoDB integration and credentials configured using DefaultCredentialsProvider.
+- ✅ Terraform configurations and `.gitignore` safety boundaries set up for AWS cloud infrastructure provisioning.
+
 
