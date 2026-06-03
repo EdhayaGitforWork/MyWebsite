@@ -32,6 +32,35 @@ The project is structured with an **Event-Driven Enquiry Flow** to handle user i
 
 ---
 
+## Under the Hood: DynamoDB Architecture & Latency Analysis
+
+### Why does it take time to reach DynamoDB? (Latency Analysis)
+In this event-driven system, when the user clicks "Submit Request", the database write is **asynchronous** and **decoupled**. This introduces some natural micro-latencies before the record lands in DynamoDB:
+1. **Asynchronous Handshake (Kafka Decoupling):** The frontend receives an instant `200 OK` from the REST API because the API only writes the message to the Kafka topic and immediately returns. The frontend does not block or wait for the database write, resulting in a highly responsive user experience.
+2. **Polling Frequency & Processing:** The backend Kafka listener group (`enquiry-group`) polls the broker for new messages. This polling frequency, along with Java JSON deserialization and validation checks (checking if the domain matches Banking/Fintech), takes a few milliseconds.
+3. **Cross-Cloud Network Latency:** Your application runs on an OpenShift cluster, while DynamoDB runs in AWS London (`eu-west-2`). Executing a TLS HTTPS POST request across the public internet from OpenShift to AWS creates a network transit overhead of around 50ms - 150ms.
+4. **Data Replication Overhead:** Once the write reaches DynamoDB, it replicates the data across three separate physical Availability Zones (data centers) within the region before acknowledging a successful write back to the Spring Boot client.
+
+### How does DynamoDB work behind the scenes?
+Amazon DynamoDB is a fully managed NoSQL key-value database designed to provide consistent, single-digit millisecond latency at any scale. Here is how it functions in this project:
+
+#### 1. Partitioning and Hashing (Constant O(1) Time Complexity)
+- **The Partition Key (`enquiryId`):** We defined `enquiryId` as the table's partition key. 
+- **Under the hood:** When your backend makes a `PutItem` call, DynamoDB feeds the `enquiryId` string (e.g., `4fb3f6e4-5040-...`) into an internal cryptographic hash function. The output of this hash tells DynamoDB exactly which physical storage partition (SSD) holds that data. 
+- **Result:** Because lookup is based on direct hashing rather than scanning index trees, reads and writes take the exact same amount of time ($O(1)$ time complexity), whether the table contains 10 rows or 10 billion rows.
+
+#### 2. On-Demand Capacity Mode (`PAY_PER_REQUEST`)
+- **Autoscaling:** We provisioned the table in on-demand mode. Rather than defining fixed read/write capacity units (which can throttle traffic if exceeded), DynamoDB instantly scales up or down its internal partitions to handle whatever throughput spikes your frontend submits.
+- **Cost Efficiency:** You only pay for the exact read/write requests executed. For portfolio applications, this is highly cost-effective and remains inside the AWS free tier.
+
+#### 3. Schema-less Attributes
+- Unlike relational databases (SQL) that require a strict column layout, DynamoDB is schema-less.
+- Each item is stored as an independent document of key-value attributes:
+  - **Scalar Attributes:** `userName`, `email`, `mobileNo`, `domain`, and `companyName` are mapped as String (`S`) attributes. `projectDuration` is mapped as a Number (`N`) attribute.
+  - **Document Attributes:** The services selected by the user are stored in a nested List (`L`) of String attributes (`selectedServices`), allowing rich data structures to be saved in a single write operation.
+
+---
+
 ## Directory Structure & Resource Layout
 
 ### 1. Kubernetes/OpenShift Manifests (`k8s/`)
