@@ -41,6 +41,24 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "my-cluster-kafka-bootstrap:9092"
 
+            - name: AWS_REGION
+              value: "eu-west-2"
+
+            - name: AWS_DYNAMODB_TABLE_NAME
+              value: "Enquiries-dev"
+
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_access_key_id
+
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_secret_access_key
+
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:

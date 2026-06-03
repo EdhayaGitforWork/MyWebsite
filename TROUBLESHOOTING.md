@@ -271,6 +271,33 @@ Running `terraform init` locally downloaded the provider binaries inside the `te
 
 ---
 
+## 15. Empty DynamoDB Table due to Missing AWS Credentials in OpenShift Deployment
+
+**Issue:**
+Scanning the DynamoDB table on AWS returned 0 items (`"Items": [], "Count": 0`), and submitted enquiries were not appearing in the database.
+
+**Root Cause:**
+The `backend-deployment.yaml` manifest in OpenShift did not have the AWS-specific environment variables configured. Without `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and `AWS_DYNAMODB_TABLE_NAME` injected into the backend pod, the Java DynamoDB client could not authenticate with AWS, nor did it know to target `Enquiries-dev` (defaulting internally to `Enquiries`).
+
+**Resolution:**
+Updated `k8s/backend/backend-deployment.yaml` to inject the necessary environment configurations.
+- Map the credentials securely from a Kubernetes Secret named `aws-credentials`:
+```yaml
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-credentials
+                  key: aws_secret_access_key
+```
+- Define `AWS_REGION` as `eu-west-2` and `AWS_DYNAMODB_TABLE_NAME` as `Enquiries-dev`.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
