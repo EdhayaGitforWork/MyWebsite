@@ -298,6 +298,31 @@ Updated `k8s/backend/backend-deployment.yaml` to inject the necessary environmen
 
 ---
 
+## 16. Kafka Cluster Scaling to 5 Replicas and `INCONSISTENT_CLUSTER_ID` Error
+
+**Issue:**
+When scaling the Kafka cluster from a single pod to a 5-replica StatefulSet in KRaft mode, all 5 Kafka pods entered a `CrashLoopBackOff` status with the error:
+`Unexpected error INCONSISTENT_CLUSTER_ID in VOTE response`
+
+**Root Cause:**
+In KRaft mode, Bitnami's setup script formats the storage directory (`kafka format --cluster-id ...`) automatically on startup if it detects an empty volume. If `KAFKA_KRAFT_CLUSTER_ID` is not explicitly set, each pod's container generates a different random UUID independently when formatting its own storage volume. When the pods try to form a raft quorum, they detect that they are using different cluster IDs and reject each other's votes, causing the brokers to crash.
+
+**Resolution:**
+1. **Defined a Static Cluster ID:** Added the `KAFKA_KRAFT_CLUSTER_ID` environment variable to `k8s/kafka/kafka-single-pod.yaml` set to a fixed, cluster-wide 22-character base64 UUID (`4L62xdtTRt2RPMw3s3tzzg`) so all brokers use the exact same ID during directory format:
+   ```yaml
+               - name: KAFKA_KRAFT_CLUSTER_ID
+                 value: "4L62xdtTRt2RPMw3s3tzzg"
+   ```
+2. **Nuked Inconsistent Storage Volumes:** To apply the new static ID to existing volumes (which had already been formatted with conflicting random IDs), the StatefulSet and the 5 persistent volume claims (`kafka-data-kafka-0` to `kafka-data-kafka-4`) were deleted:
+   ```bash
+   oc delete statefulset kafka
+   oc delete pvc -l app=kafka
+   ```
+3. **Reapplied and Verified:** Reapplied the updated manifest. The PVCs were automatically recreated and formatted using the shared static cluster ID, allowing all 5 pods (`kafka-0` to `kafka-4`) to transition to the `Running` state and successfully form a raft quorum.
+4. **Updated Backend bootstrap address:** Verified the backend deployment env `KAFKA_BOOTSTRAP_SERVERS` is set to `kafka-client:9092` which routes to the scaled cluster.
+
+---
+
 ### Final Status
 Following these changes, the end-to-end architecture is fully functional and enterprise-ready:
 - ✅ OpenShift Service Account authentication established for CI/CD.
@@ -305,7 +330,7 @@ Following these changes, the end-to-end architecture is fully functional and ent
 - ✅ Spring Boot backend connected to the database.
 - ✅ Next.js frontend securely exposed to the public internet via HTTPS Edge Termination.
 - ✅ Prometheus metrics fully integrated with OpenShift User Workload Monitoring.
-- ✅ Standalone single-pod Kafka deployed inside developer namespace without operator requirements.
+- ✅ Distributed **5-replica Kafka cluster** running in KRaft mode with persistent storage and a shared cluster ID quorum.
 - ✅ AWS DynamoDB integration and credentials configured using DefaultCredentialsProvider.
 - ✅ Terraform configurations and `.gitignore` safety boundaries set up for AWS cloud infrastructure provisioning.
 

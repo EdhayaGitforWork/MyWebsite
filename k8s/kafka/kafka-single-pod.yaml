@@ -76,6 +76,8 @@ spec:
             
             - name: ALLOW_PLAINTEXT_LISTENER
               value: "yes"
+            - name: KAFKA_KRAFT_CLUSTER_ID
+              value: "4L62xdtTRt2RPMw3s3tzzg"
 
           # Storage per broker
           volumeMounts:
