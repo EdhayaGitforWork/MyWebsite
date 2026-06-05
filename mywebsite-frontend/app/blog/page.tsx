@@ -285,6 +285,7 @@ export default function ServicesPage() {
                 >
                   <option value="Banking">Banking</option>
                   <option value="Fintech">Fintech</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
               
