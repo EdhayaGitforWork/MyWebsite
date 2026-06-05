@@ -4,7 +4,7 @@ This guide contains a slide-by-slide outline, visual design layout recommendatio
 
 ---
 
-## Slide 1: Introduction to MOMs & Apache Kafka
+## Slide 1:Introduction to MOMs & Apache Kafka
 **Slide Title:** Decoupling Systems with Message-Oriented Middleware & Apache Kafka
 
 ### Slide Content:
