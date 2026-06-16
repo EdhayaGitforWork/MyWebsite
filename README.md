@@ -8,7 +8,7 @@ A full-stack, event-driven portfolio website featuring a Next.js frontend, a Spr
 
 The project is structured with an **Event-Driven Enquiry Flow** to handle user inquiries asynchronously:
 
-```text
+````text
 [ Next.js Frontend ] 
        │ (REST POST /api/enquiries with JWT)
        ▼

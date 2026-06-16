@@ -31,6 +31,7 @@ public class KafkaConsumerService {
                 log.error("Failed to save enquiry to DynamoDB", e);
             }
         } else {
+            
             log.info("Domain '{}' is not Banking or Fintech. Skipping DynamoDB persistence.", domain);
         }
     }
