@@ -6,7 +6,7 @@ A full-stack, event-driven portfolio website featuring a Next.js frontend,  Spri
 
 ##System Architecture & Data Flow
 
-The project is structured with an **Event-Driven Enquiry Flow** to handle user inquiries asynchronously:
+The project is structured with an ** Event-Driven Enquiry Flow** to handle user inquiries asynchronously:
 
 ````text
 [ Next.js Frontend ] 
