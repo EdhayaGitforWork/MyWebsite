@@ -1,6 +1,6 @@
 # MyWebsite (Full-Stack Portfolio)
 
-A full-stack, event-driven portfolio website featuring a Next.js frontend, a Spring Boot backend, a PostgreSQL database, a Kafka event broker, and AWS DynamoDB persistence.
+A full-stack, event-driven portfolio website featuring a Next.js frontend,  Spring Boot backend, a PostgreSQL database, a Kafka event broker, and AWS DynamoDB persistence.
 
 ---
 
